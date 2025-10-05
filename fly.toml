@@ -1,0 +1,20 @@
+app = "telegram-n8n-bot" # Reemplaza por el nombre de app que quieras, debe ser único globalmente
+
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[build]
+  builder = "docker"
+
+[mounts]
+  # Si Fly.io usa almacenamiento persistente, puedes ignorar esta sección por simplicidad. 
+  # Para un bot de Telethon, no la necesitas ya que la sesión está en el repo.
+
+[experimental]
+  # Habilita un Job en segundo plano (Worker)
+  cmd = ["python3", "main.py"] 
+  
+  # Este bloque es clave: asegura que Fly.io lo ejecute como un proceso en segundo plano 
+  # sin necesidad de abrir un puerto web, lo que cumple con el requisito de Worker.
+  # Si el despliegue falla, a veces es más fácil dejar solo la línea CMD en el Dockerfile y eliminar este bloque [experimental].
