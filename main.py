@@ -1,24 +1,54 @@
 from telethon import TelegramClient, events
 import requests
+import os
 
-# 🔧 CONFIGURA TUS DATOS
-api_id = 12345678  # Tu API ID desde https://my.telegram.org
-api_hash = 'tu_api_hash'
-channel_username = 'nombre_del_canal'  # puede ser @nombre o ID numérico
-webhook_url = 'https://tuinstancia.n8n.cloud/webhook/telegram-message'  # tu webhook n8n
+# ========== CONFIGURACIÓN ==========
+# ⚙️ Consigue estos datos en https://my.telegram.org
+api_id = int(os.getenv("API_ID", "123456"))       # reemplazá por tu API ID
+api_hash = os.getenv("API_HASH", "tu_api_hash")   # reemplazá por tu API HASH
 
-# Inicia cliente
-client = TelegramClient('session_name', api_id, api_hash)
+# Canal a monitorear
+channel_username = "pronosticosfutbol365"  # sin @ adelante
+
+# Webhook de n8n donde se enviarán los mensajes
+webhook_url = os.getenv("WEBHOOK_URL", "https://tuinstancia.n8n.cloud/webhook/telegram-message")
+
+# Nombre del archivo de sesión (se genera al iniciar sesión la primera vez)
+session_name = "session_name"
+
+# ===================================
+
+client = TelegramClient(session_name, api_id, api_hash)
 
 @client.on(events.NewMessage(chats=channel_username))
 async def handler(event):
-    text = event.message.message or ""
-    print(f"Nuevo mensaje detectado: {text}")
+    """Captura cada nuevo mensaje del canal y lo envía a tu webhook."""
     try:
-        requests.post(webhook_url, json={"text": text})
-    except Exception as e:
-        print(f"Error al enviar mensaje: {e}")
+        message = event.message
 
+        # Texto principal
+        text = message.message or ""
+
+        # Si hay medios (fotos, videos, documentos)
+        has_media = bool(message.media)
+        media_type = type(message.media).__name__ if has_media else None
+
+        payload = {
+            "text": text,
+            "has_media": has_media,
+            "media_type": media_type
+        }
+
+        print(f"📩 Nuevo mensaje detectado: {text[:60]}...")
+
+        # Enviar al webhook n8n
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        print(f"✅ Enviado a webhook (status {response.status_code})")
+
+    except Exception as e:
+        print(f"❌ Error procesando mensaje: {e}")
+
+# =============================
+print("🚀 Escuchando el canal @pronosticosfutbol365...")
 client.start()
-print("🟢 Escuchando canal de Telegram...")
 client.run_until_disconnected()
