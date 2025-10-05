@@ -11,7 +11,7 @@ api_hash = "f530ea8cb15150cc6f866879d751e50c"  # Tu API HASH
 channel_username = "pronosticosfutbol365"  # sin @ adelante
 
 # Webhook de n8n donde se enviarán los mensajes
-webhook_url = "https://n8n-sozl.onrender.com/workflow/hiR60SQVZeA8hQ4G" # ¡WEBHOOK ACTUALIZADO!
+webhook_url = "https://n8n-sozl.onrender.com/webhook/telegram-message" # ¡WEBHOOK FINAL ACTUALIZADO!
 
 # Nombre del archivo de sesión (se genera al iniciar sesión la primera vez)
 session_name = "session_name"
