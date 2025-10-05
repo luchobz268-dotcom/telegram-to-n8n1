@@ -4,14 +4,14 @@ import os
 
 # ========== CONFIGURACIÓN ==========
 # ⚙️ Consigue estos datos en https://my.telegram.org
-api_id = int(os.getenv("API_ID", "123456"))       # reemplazá por tu API ID
-api_hash = os.getenv("API_HASH", "tu_api_hash")   # reemplazá por tu API HASH
+api_id = 26799526  # Tu API ID
+api_hash = "f530ea8cb15150cc6f866879d751e50c"  # Tu API HASH
 
 # Canal a monitorear
 channel_username = "pronosticosfutbol365"  # sin @ adelante
 
 # Webhook de n8n donde se enviarán los mensajes
-webhook_url = os.getenv("WEBHOOK_URL", "https://tuinstancia.n8n.cloud/webhook/telegram-message")
+webhook_url = "https://n8n-sozl.onrender.com/workflow/hiR60SQVZeA8hQ4G" # ¡WEBHOOK ACTUALIZADO!
 
 # Nombre del archivo de sesión (se genera al iniciar sesión la primera vez)
 session_name = "session_name"
