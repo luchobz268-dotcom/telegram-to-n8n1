@@ -1,51 +1,73 @@
-# ... (Código de configuración, Flask, etc.) ...
+# Asegúrate de que estas líneas estén al inicio de tu main.py:
+from telethon import TelegramClient, events
+# ... (otras importaciones) ...
+from datetime import datetime, timezone 
+import asyncio
+# ... (resto de tu código) ...
 
+# -------------------------------------------------------------
+# Nueva función asíncrona para manejar el historial
+# -------------------------------------------------------------
 async def get_history_and_send():
-    """Obtiene y procesa todos los mensajes del canal desde el inicio del día."""
-    from datetime import datetime, timedelta, timezone
+    """Busca mensajes desde la medianoche de hoy y los envía a n8n."""
     
-    # 1. Definir el punto de inicio (Hoy a las 00:00:00)
-    # Usamos UTC para Telethon, que es el estándar
+    # Define la hora de medianoche de hoy en UTC (esencial para Telethon)
     now = datetime.now(timezone.utc)
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    print(f"⏳ Buscando mensajes desde: {start_of_day.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"⏳ Buscando historial desde: {start_of_day.strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
-    # 2. Consultar el historial de mensajes
-    # 'offset_date' le dice a Telethon que solo devuelva mensajes *posteriores* a esta fecha.
+    # Obtiene mensajes posteriores a la medianoche
     messages = await client.get_messages(
         channel_username, 
         offset_date=start_of_day, 
-        reverse=True # Importante: asegura que los procesamos en el orden correcto (del más viejo al más nuevo)
+        reverse=True # Procesar en orden correcto (más viejo a más nuevo)
     )
 
-    # 3. Procesar y Enviar
     if not messages:
-        print("✅ No se encontraron mensajes anteriores en el historial de hoy.")
+        print("✅ No se encontraron mensajes anteriores hoy.")
         return
 
-    print(f"📦 Encontrados {len(messages)} mensajes anteriores. Procesando...")
+    print(f"📦 Encontrados {len(messages)} mensajes. Enviando...")
     
     for message in messages:
-        # Aquí reusamos la lógica de envío del 'handler'
+        # Lógica de envío simplificada
         try:
-            text = message.message or ""
-            has_media = bool(message.media)
-            media_type = type(message.media).__name__ if has_media else None
-            
             payload = {
-                "text": text,
-                "has_media": has_media,
-                "media_type": media_type,
-                "is_history": True # Flag para n8n, si lo necesitas
+                "text": message.message or "",
+                "has_media": bool(message.media),
+                "media_type": type(message.media).__name__ if message.media else None,
+                "is_history": True 
             }
-
-            print(f"⬆️ Enviando historial: {text[:40]}...")
             requests.post(webhook_url, json=payload, timeout=10)
-
         except Exception as e:
             print(f"❌ Error al enviar mensaje histórico: {e}")
             
-    print("✅ Historial de mensajes de hoy procesado y enviado.")
+    print("✅ Historial de mensajes de hoy procesado.")
 
-# ... (El handler @client.on(events.NewMessage) sigue igual) ...
+
+# -------------------------------------------------------------
+# Modificación de la función principal de inicio (run_telethon)
+# -------------------------------------------------------------
+def run_telethon():
+    """Conecta el cliente, procesa el historial y luego escucha nuevos mensajes."""
+    print("🚀 Conectando cliente Telegram...")
+    client.start() 
+
+    # 1. EJECUTAR EL HISTORIAL (usando el bucle de eventos del cliente)
+    client.loop.run_until_complete(get_history_and_send())
+    
+    # 2. ESCUCHAR NUEVOS MENSAJES
+    print("👂 Escuchando nuevos mensajes del canal...")
+    client.run_until_disconnected()
+
+
+# -------------------------------------------------------------
+# La sección __main__ debe verse así:
+# -------------------------------------------------------------
+if __name__ == '__main__':
+    # 1. Iniciamos el servidor Flask en un hilo separado para evitar que Render lo duerma
+    run_flask()
+    
+    # 2. Iniciamos el cliente Telethon y el historial en el hilo principal
+    run_telethon()
