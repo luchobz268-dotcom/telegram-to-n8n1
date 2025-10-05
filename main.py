@@ -11,21 +11,24 @@ import logging
 logging.getLogger('telethon').setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
-# ========== CONFIGURACIÓN ==========
+# ========== 1. CONFIGURACIÓN ==========
 # ⚙️ Asegúrate de que estos valores sean correctos
 api_id = 26799526
 api_hash = "f530ea8cb15150cc6f866879d751e50c"
 channel_username = "pronosticosfutbol365"
-webhook_url = "https://n8n-sozl.onrender.com/webhook-test/telegram-message"
-session_name = "session_name"
+# URL de n8n para el modo de prueba
+webhook_url = "https://n8n-sozl.onrender.com/webhook-test/telegram-message" 
+session_name = "session_name" # Debe coincidir con el nombre de tu archivo .session
 
 # Configuración del servidor web (Hack para Render Free Tier)
 WEB_HOST = '0.0.0.0'
-# Render inyectará el puerto en la variable de entorno PORT, si no, usa 8080
 WEB_PORT = int(os.environ.get("PORT", 8080)) 
 
 app = Flask(__name__)
+client = TelegramClient(session_name, api_id, api_hash)
 
+# ===================================
+# --- 2. ENDPOINT WEB (ANTI-SUEÑO) ---
 # ===================================
 
 @app.route('/')
@@ -34,9 +37,7 @@ def home():
     return "Telegram Bot is running! Status: OK"
 
 # ===================================
-
-client = TelegramClient(session_name, api_id, api_hash)
-
+# --- 3. MANEJADOR DE MENSAJES NUEVOS ---
 # ===================================
 
 @client.on(events.NewMessage(chats=channel_username))
@@ -51,7 +52,7 @@ async def new_message_handler(event):
             "text": text,
             "has_media": has_media,
             "media_type": type(message.media).__name__ if has_media else None,
-            "is_history": False # Indica que es un mensaje nuevo, no del historial
+            "is_history": False 
         }
 
         print(f"📩 Nuevo mensaje detectado: {text[:60]}...")
@@ -64,17 +65,19 @@ async def new_message_handler(event):
         print(f"❌ Error procesando mensaje nuevo: {e}")
 
 # ===================================
+# --- 4. FUNCIÓN PARA EL HISTORIAL ---
+# ===================================
 
 async def get_history_and_send():
     """Busca mensajes desde la medianoche de hoy y los envía a n8n."""
     
-    # Define la hora de medianoche de hoy en UTC (esencial para Telethon)
+    # Define la hora de medianoche de hoy en UTC
     now = datetime.now(timezone.utc)
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
     print(f"⏳ Buscando historial desde: {start_of_day.strftime('%Y-%m-%d %H:%M:%S')} UTC")
 
-    # Obtiene mensajes posteriores a la medianoche (máx 100 mensajes, si necesitas más, modifica 'limit')
+    # Obtiene mensajes posteriores a la medianoche
     messages = await client.get_messages(
         channel_username, 
         offset_date=start_of_day, 
@@ -93,7 +96,7 @@ async def get_history_and_send():
                 "text": message.message or "",
                 "has_media": bool(message.media),
                 "media_type": type(message.media).__name__ if message.media else None,
-                "is_history": True # Indica que es un mensaje del historial
+                "is_history": True
             }
             requests.post(webhook_url, json=payload, timeout=10)
         except Exception as e:
@@ -102,28 +105,36 @@ async def get_history_and_send():
     print("✅ Historial de mensajes de hoy procesado.")
 
 # ===================================
-# --- FUNCIONES DE INICIO Y DEPLOY ---
+# --- 5. INICIO DEL PROGRAMA ---
 # ===================================
 
-def run_flask():
-    """Ejecuta el servidor Flask en un Thread para no bloquear Asyncio."""
+def run_flask_thread():
+    """Ejecuta el servidor Flask en un Thread para el anti-sueño."""
     print(f"🌐 Iniciando servidor web en puerto {WEB_PORT} para evitar el sueño...")
-    # Ejecutamos Flask en un hilo de Python (Thread) para correr en paralelo con Telethon
     Thread(target=app.run, kwargs={'host': WEB_HOST, 'port': WEB_PORT}).start()
 
-async def run_telethon_and_history():
-    """Función asíncrona principal: Inicia cliente, busca historial y se queda escuchando."""
+def start_bot():
+    """Conecta el cliente, procesa historial y se queda escuchando."""
     
     print("🚀 Conectando cliente Telegram...")
-    await client.start()
-
-    # 1. Ejecutar la función asíncrona de historial
-    await get_history_and_send()
     
-    # 2. Escuchar nuevos mensajes indefinidamente
+    try:
+        # 1. Conecta el cliente de forma síncrona
+        client.start()
+    except Exception as e:
+        # Si falla, informa del error de sesión y detiene la ejecución
+        print(f"❌ ERROR AL INICIAR SESIÓN: Verifica el archivo session_name.session. Error: {e}")
+        return 
+
+    # 2. Ejecuta el historial 
+    print("⏳ Procesando historial de mensajes...")
+    client.loop.run_until_complete(get_history_and_send())
+    
+    # 3. Escucha nuevos mensajes
     print("👂 Escuchando nuevos mensajes del canal...")
-    await client.run_until_disconnected()
+    client.run_until_disconnected()
 
 if __name__ == '__main__':
-    # 1. Iniciamos el servidor Flask en un hilo separado
-    run_flask()
+    # El servidor web y el bot se ejecutan en hilos separados
+    run_flask_thread()
+    start_bot()
