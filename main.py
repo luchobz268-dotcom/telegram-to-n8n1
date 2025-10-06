@@ -11,22 +11,26 @@ import logging
 logging.getLogger('telethon').setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
-# ========== 1. CONFIGURACIÓN ==========
-# ⚙️ Estos valores son los que necesitas para tu bot
-api_id = 26799526
-api_hash = "f530ea8cb15150cc6f866879d751e50c"
+# ========== 1. CONFIGURACIÓN E INICIO SEGURO ==========
+# ⚙️ OBTIENE LAS CREDENCIALES DE LAS VARIABLES DE ENTORNO EN RENDER
+# Si las variables no existen (solo para prueba local), usa los valores por defecto.
+api_id = int(os.environ.get("TELEGRAM_API_ID", 26799526))
+api_hash = os.environ.get("TELEGRAM_API_HASH", "f530ea8cb15150cc6f866879d751e50c")
+
 channel_username = "pronosticosfutbol365"
 
-# ¡TU WEBHOOK DE PRUEBA DE N8N!
+# TU WEBHOOK DE PRUEBA DE N8N
 webhook_url = "https://n8n-sozl.onrender.com/webhook-test/telegram-message" 
 
-session_name = "session_name" # Debe coincidir con el nombre de tu archivo .session
+session_name = "session_name" 
 
 # Configuración del servidor web (Hack para Render Free Tier)
 WEB_HOST = '0.0.0.0'
 WEB_PORT = int(os.environ.get("PORT", 8080)) 
 
 app = Flask(__name__)
+
+# INICIALIZACIÓN DEL CLIENTE: Usará las credenciales directas
 client = TelegramClient(session_name, api_id, api_hash)
 
 # ===================================
@@ -122,10 +126,12 @@ def start_bot():
     
     try:
         # 1. Conecta el cliente de forma síncrona
+        # Al no encontrar una sesión válida, intentará iniciar sesión con las variables de entorno.
         client.start()
+        
     except Exception as e:
-        # Si falla, informa del error de sesión y detiene la ejecución
-        print(f"❌ ERROR AL INICIAR SESIÓN: Verifica el archivo session_name.session. Error: {e}")
+        # Si falla, informa del error de sesión.
+        print(f"❌ ERROR AL INICIAR SESIÓN: Verifica las variables de entorno TELEGRAM_API_ID/HASH y el archivo .session. Error: {e}")
         return 
 
     # 2. Ejecuta el historial 
