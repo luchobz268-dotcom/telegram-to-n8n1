@@ -6,15 +6,15 @@ import requests
 from datetime import datetime, timedelta
 
 # === CONFIGURACIÓN DESDE VARIABLES DE ENTORNO ===
-API_ID = int(os.getenv('TELEGRAM_API_ID', '12345678'))
-API_HASH = os.getenv('TELEGRAM_API_HASH', 'tu_api_hash')
-PHONE = os.getenv('TELEGRAM_PHONE', '+5491234567890')
+API_ID = int(os.getenv('TELEGRAM_API_ID', '26799526'))
+API_HASH = os.getenv('TELEGRAM_API_HASH', 'f530ea8cb15150cc6f866879d751e50c')
+PHONE = os.getenv('TELEGRAM_PHONE', '+5493515997253')
 
 # Canal de origen
-CANAL_ORIGEN = os.getenv('CANAL_ORIGEN', '@nombre_del_canal')
+CANAL_ORIGEN = os.getenv('CANAL_ORIGEN', '@pronosticosfutbol365')
 
 # Webhook de n8n
-N8N_WEBHOOK_URL = os.getenv('N8N_WEBHOOK_URL', 'https://tu-n8n.render.com/webhook/telegram')
+N8N_WEBHOOK_URL = os.getenv('N8N_WEBHOOK_URL', 'https://n8n-sozl.onrender.com/webhook-test/telegram-message')
 
 # Días de historial a revisar
 DIAS_HISTORICOS = int(os.getenv('DIAS_HISTORICOS', '7'))
