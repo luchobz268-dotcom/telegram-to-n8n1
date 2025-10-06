@@ -1,0 +1,5 @@
+sesion_telegram.session
+mensajes_enviados.json
+*.pyc
+__pycache__/
+.env
