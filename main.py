@@ -12,12 +12,14 @@ logging.getLogger('telethon').setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 # ========== 1. CONFIGURACIÓN ==========
-# ⚙️ Asegúrate de que estos valores sean correctos
+# ⚙️ Estos valores son los que necesitas para tu bot
 api_id = 26799526
 api_hash = "f530ea8cb15150cc6f866879d751e50c"
 channel_username = "pronosticosfutbol365"
-# URL de n8n para el modo de prueba
+
+# ¡TU WEBHOOK DE PRUEBA DE N8N!
 webhook_url = "https://n8n-sozl.onrender.com/webhook-test/telegram-message" 
+
 session_name = "session_name" # Debe coincidir con el nombre de tu archivo .session
 
 # Configuración del servidor web (Hack para Render Free Tier)
