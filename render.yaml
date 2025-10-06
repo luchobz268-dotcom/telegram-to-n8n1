@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: telegram-forwarder
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: TELEGRAM_SESSION
+        sync: false
+      - key: CANAL_ORIGEN
+        value: '@nombre_canal'
+      - key: N8N_WEBHOOK_URL
+        sync: false
+      - key: WHATSAPP_NUMBER
+        value: '5491234567890'
+      - key: DIAS_HISTORICOS
+        value: '7'
