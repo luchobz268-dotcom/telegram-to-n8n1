@@ -12,16 +12,15 @@ logging.getLogger('telethon').setLevel(logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 # ========== 1. CONFIGURACIÓN E INICIO SEGURO ==========
-# ⚙️ OBTIENE LAS CREDENCIALES DE LAS VARIABLES DE ENTORNO EN RENDER
-# Si las variables no existen (solo para prueba local), usa los valores por defecto.
+# OBTIENE LAS CREDENCIALES DE LAS VARIABLES DE ENTORNO EN RENDER
 api_id = int(os.environ.get("TELEGRAM_API_ID", 26799526))
 api_hash = os.environ.get("TELEGRAM_API_HASH", "f530ea8cb15150cc6f866879d751e50c")
+# NUEVAS VARIABLES PARA INICIO DE SESIÓN NO INTERACTIVO
+telegram_phone = os.environ.get("TELEGRAM_PHONE")
+telegram_password = os.environ.get("TELEGRAM_PASSWORD", "")
 
 channel_username = "pronosticosfutbol365"
-
-# TU WEBHOOK DE PRUEBA DE N8N
 webhook_url = "https://n8n-sozl.onrender.com/webhook-test/telegram-message" 
-
 session_name = "session_name" 
 
 # Configuración del servidor web (Hack para Render Free Tier)
@@ -30,12 +29,12 @@ WEB_PORT = int(os.environ.get("PORT", 8080))
 
 app = Flask(__name__)
 
-# INICIALIZACIÓN DEL CLIENTE: Usará las credenciales directas
+# INICIALIZACIÓN DEL CLIENTE
 client = TelegramClient(session_name, api_id, api_hash)
 
 # ===================================
 # --- 2. ENDPOINT WEB (ANTI-SUEÑO) ---
-# ===================================
+# ... (Resto del código idéntico) ...
 
 @app.route('/')
 def home():
@@ -111,7 +110,7 @@ async def get_history_and_send():
     print("✅ Historial de mensajes de hoy procesado.")
 
 # ===================================
-# --- 5. INICIO DEL PROGRAMA ---
+# --- 5. INICIO DEL PROGRAMA MODIFICADO ---
 # ===================================
 
 def run_flask_thread():
@@ -126,12 +125,12 @@ def start_bot():
     
     try:
         # 1. Conecta el cliente de forma síncrona
-        # Al no encontrar una sesión válida, intentará iniciar sesión con las variables de entorno.
-        client.start()
+        # Usa el número de teléfono y contraseña para el inicio de sesión no interactivo.
+        client.start(phone=telegram_phone, password=telegram_password)
         
     except Exception as e:
-        # Si falla, informa del error de sesión.
-        print(f"❌ ERROR AL INICIAR SESIÓN: Verifica las variables de entorno TELEGRAM_API_ID/HASH y el archivo .session. Error: {e}")
+        # Si falla, informa del error de sesión y detiene la ejecución.
+        print(f"❌ ERROR AL INICIAR SESIÓN: Verifica las variables TELEGRAM_PHONE y PASSWORD. Error: {e}")
         return 
 
     # 2. Ejecuta el historial 
@@ -143,6 +142,10 @@ def start_bot():
     client.run_until_disconnected()
 
 if __name__ == '__main__':
-    # El servidor web y el bot se ejecutan en hilos separados
-    run_flask_thread()
-    start_bot()
+    # Verificar que el número de teléfono esté configurado
+    if not telegram_phone:
+        print("🔴 ERROR CRÍTICO: La variable TELEGRAM_PHONE no está configurada. El bot no puede iniciar sesión.")
+    else:
+        # El servidor web y el bot se ejecutan en hilos separados
+        run_flask_thread()
+        start_bot()
