@@ -8,13 +8,13 @@ from flask import Flask
 import threading
 
 # === CONFIGURACIÓN ===
-API_ID = int(os.getenv('TELEGRAM_API_ID', '0'))
-API_HASH = os.getenv('TELEGRAM_API_HASH', '')
+API_ID = int(os.getenv('TELEGRAM_API_ID', '26799526'))
+API_HASH = os.getenv('TELEGRAM_API_HASH', 'f530ea8cb15150cc6f866879d751e50c')
 SESSION_STRING = os.getenv('TELEGRAM_SESSION', '')
 
-CANAL_ORIGEN = os.getenv('CANAL_ORIGEN', '@nombre_canal')
-N8N_WEBHOOK_URL = os.getenv('N8N_WEBHOOK_URL', '')
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '5491234567890')
+CANAL_ORIGEN = os.getenv('CANAL_ORIGEN', '@pronosticosfutbol365')
+N8N_WEBHOOK_URL = os.getenv('N8N_WEBHOOK_URL', 'https://n8n-sozl.onrender.com/webhook-test/telegram-message')
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '5493515997253')
 DIAS_HISTORICOS = int(os.getenv('DIAS_HISTORICOS', '7'))
 
 PORT = int(os.getenv('PORT', '10000'))
