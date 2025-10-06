@@ -12,10 +12,10 @@ services:
       - key: TELEGRAM_SESSION
         sync: false
       - key: CANAL_ORIGEN
-        value: '@nombre_canal'
+        value: '@pronosticosfutbol365'
       - key: N8N_WEBHOOK_URL
         sync: false
       - key: WHATSAPP_NUMBER
-        value: '5491234567890'
+        value: '5493515997253'
       - key: DIAS_HISTORICOS
         value: '7'
